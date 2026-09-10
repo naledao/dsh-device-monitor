@@ -1,0 +1,14 @@
+# dsh-device-monitor：本机设备监控（CPU 负载·温度 / GPU 负载·温度 / 内存·交换 /
+# 存储占用 / 网络下行·上行速率），宿主侧采样并通过 REST 供 Web 底栏与面板使用。
+- insert:
+    - id: dsh-device-monitor
+      name: 'dsh-device-monitor'
+      config:
+        # 采样间隔（毫秒）。默认 1000；全部数据源都是 /proc 与 sysfs 读取，开销可忽略。
+        intervalMs: 1000
+        # 宿主侧环形缓冲条数（REST /snapshot 的 history 窗口上限）。
+        # 客户端底栏自带内存曲线，不依赖这一项。
+        historySize: 240
+        # 要展示占用的挂载点；默认只看根文件系统。
+        mounts:
+          - /

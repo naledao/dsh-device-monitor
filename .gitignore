@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 日志与运行时产物
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# 本地环境与密钥
+.env
+.env.*
+!.env.example
+*.local
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.swp

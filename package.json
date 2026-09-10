@@ -1,0 +1,52 @@
+{
+  "name": "dsh-device-monitor",
+  "version": "0.1.0",
+  "description": "DSH 本机设备监控插件：CPU 负载与温度、GPU（Adreno/kgsl）负载与温度、物理内存与交换分区、存储占用、网络下行/上行速率，Web 底栏实时读数 + 可展开面板与短时内存曲线。",
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "monitor",
+    "cpu",
+    "gpu",
+    "adreno",
+    "memory",
+    "swap",
+    "disk",
+    "network",
+    "thermal"
+  ],
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "node test/smoke.mjs && node test/websocket.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}
