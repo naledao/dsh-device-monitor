@@ -1,5 +1,6 @@
 # dsh-device-monitor：本机设备监控（CPU 负载·温度 / GPU 负载·温度 / 内存·交换 /
-# 存储占用 / 网络下行·上行速率），宿主侧采样并通过 REST 供 Web 底栏与面板使用。
+# 存储占用 / 电量·充电状态 / 网络下行·上行速率），宿主侧采样并通过 REST 供 Web
+# 底栏与面板使用。
 - insert:
     - id: dsh-device-monitor
       name: 'dsh-device-monitor'

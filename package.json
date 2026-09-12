@@ -1,7 +1,7 @@
 {
   "name": "dsh-device-monitor",
   "version": "0.1.0",
-  "description": "DSH 本机设备监控插件：CPU 负载与温度、GPU（Adreno/kgsl）负载与温度、物理内存与交换分区、存储占用、网络下行/上行速率，Web 底栏实时读数 + 可展开面板与短时内存曲线。",
+  "description": "DSH 本机设备监控插件：CPU 负载与温度、GPU（Adreno/kgsl）负载与温度、物理内存与交换分区、存储占用、电池电量与充电状态、网络下行/上行速率，Web 底栏实时读数 + 可展开面板与短时内存曲线。",
   "keywords": [
     "deepseek",
     "deepseek-harness",
@@ -14,6 +14,9 @@
     "memory",
     "swap",
     "disk",
+    "battery",
+    "charging",
+    "power-supply",
     "network",
     "thermal"
   ],

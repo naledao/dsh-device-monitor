@@ -54,6 +54,20 @@ for (const iface of point.net.interfaces) {
   assert.ok(!/^(lo|ip6|ifb|r_rmnet|rmnet_ipa|dummy)/.test(iface.name), `虚拟接口 ${iface.name} 已被过滤`)
 }
 
+// 电池：有 power_supply 的机器（手机、笔记本）应当读到；没有时必须是 null 而不是假 0%。
+if (point.battery !== null) {
+  assert.equal(typeof point.battery.status, 'string', '电池状态来自内核原文')
+  assert.ok(point.battery.percent === null || (point.battery.percent >= 0 && point.battery.percent <= 100), '电量在 0..100')
+  assert.equal(typeof point.battery.charging, 'boolean', '充电标志是布尔量')
+  assert.equal(typeof point.battery.plugged, 'boolean', '插电标志是布尔量')
+  assert.ok(point.battery.tempC === null || (point.battery.tempC > -40 && point.battery.tempC < 100), '电池温度已换算成摄氏度')
+  assert.ok(point.battery.voltageV === null || (point.battery.voltageV > 2 && point.battery.voltageV < 30), '电池电压已换算成伏')
+  assert.ok(
+    point.battery.currentMa === null || Math.abs(point.battery.currentMa) < 20_000,
+    '电池电流已换算成毫安（不会把微安原样吐出来）',
+  )
+}
+
 // GPU 在高通平台应当可读；读不到时按「平台无 kgsl」接受，但结构必须是 null 而不是假 0。
 if (point.gpu !== null) {
   assert.equal(typeof point.gpu.model, 'string', 'GPU 型号')
@@ -66,6 +80,21 @@ if (point.gpu !== null) {
 //#region 客户端半侧替身
 
 const FAKE_POINT = JSON.parse(JSON.stringify(point))
+// 客户端断言不该取决于跑测试的机器有没有电池：这里固定一份「正在充电」的假数据。
+FAKE_POINT.battery = {
+  name: 'battery',
+  percent: 42,
+  status: 'Charging',
+  charging: true,
+  full: false,
+  plugged: true,
+  tempC: 31.5,
+  voltageV: 4.35,
+  currentMa: 1234,
+  health: 'Good',
+  technology: 'Li-ion',
+  cycleCount: 321,
+}
 const FAKE_PROCS = [
   { pid: 10210, name: 'dsh', rssBytes: 512 * 1024 * 1024 },
   { pid: 2214, name: 'system_server', rssBytes: 256 * 1024 * 1024 },
@@ -277,6 +306,9 @@ for (const expected of [
   'ddm-stat',
   'ddm-usage',
   'ddm-usage-meter',
+  'ddm-battery',
+  'ddm-note',
+  'ddm-note-live',
   'ddm-net',
   'ddm-net-col',
   'ddm-net-value',
@@ -292,11 +324,37 @@ for (const expected of [
 ]) {
   assert.ok(classes.has(expected), `面板渲染出 .${expected}`)
 }
-// 四张指标卡 + 网络卡 + 进程表卡。
-assert.equal(counts.get('ddm-card'), 6, '一共六张卡片')
-assert.equal(counts.get('ddm-card-head'), 6, '六张卡片都有卡片头')
+// 四张指标卡 + 电量卡 + 网络卡 + 进程表卡。
+assert.equal(counts.get('ddm-card'), 7, '一共七张卡片')
+assert.equal(counts.get('ddm-card-head'), 7, '七张卡片都有卡片头')
 assert.ok(counts.get('ddm-td-bar') >= 1, '进程表有占比条')
 assert.ok(!String(JSON.stringify(tree)).includes('undefined℃'), '没有渲染出 undefined 温度占位')
+assert.ok(String(JSON.stringify(tree)).includes('42%'), '电量卡渲染出电量读数')
+assert.ok(String(JSON.stringify(tree)).includes('1.23 A'), '电流按安培显示')
+
+// 没有电池的机器（台式机 / 容器）应当少一张卡，而不是渲染 0%。
+{
+  hookIndex = 0
+  hooks[0] = { ...FAKE_POINT, battery: null }
+  const bare = componentReg.component()
+  const bareClasses = new Set()
+  const walk = node => {
+    if (node === null || node === undefined || typeof node !== 'object') return
+    if (Array.isArray(node)) {
+      for (const child of node) walk(child)
+      return
+    }
+    if (typeof node.type === 'function') {
+      walk(node.type(node.props))
+      return
+    }
+    if (typeof node.props?.className === 'string') for (const name of node.props.className.split(/\s+/)) if (name !== '') bareClasses.add(name)
+    if (Array.isArray(node.children)) for (const child of node.children) walk(child)
+  }
+  walk(bare)
+  assert.ok(!bareClasses.has('ddm-battery'), '没有电池时不渲染电量卡')
+  assert.ok(String(JSON.stringify(bare)).includes('ddm-net'), '没有电池时网络卡照旧')
+}
 
 //#endregion
 
